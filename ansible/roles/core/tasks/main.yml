@@ -1,0 +1,11 @@
+---
+# This playbook installs useful packages
+
+- include: repo.yml
+
+- include: apt.yml
+
+- include: journal.yml
+
+- include: custom.yml
+  tags: custom

@@ -17,6 +17,13 @@ packages:
   - build-essential
   - python3-kubernetes
 
+k3s_exec:
+  "{% if not k3s.extras.traefik %}--disable traefik{%- endif %}
+   {% if not k3s.extras.servicelb %}--disable servicelb{%- endif %}
+   {% if k3s.extras.servicelb %}--node-external-ip={{ inventory_hostname }}{%- endif %}
+   {% if k3s.extras.san %}--tls-san={{ inventory_hostname }}{%- endif %}
+   --cluster-cidr={{ k3s.network.cluster }} --service-cidr={{ k3s.network.service }}"
+
 lb_addresses: &lb_addresses []
 
 k3s:

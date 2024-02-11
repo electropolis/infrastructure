@@ -1,0 +1,23 @@
+---
+
+- name: Definition
+  block:
+
+    - name: Custom binary scrips
+      get_url:
+        url: "{{ item.url}}"
+        dest: "/tmp/{{ item.name }}"
+        mode: '0700'
+      loop: "{{ custom }}"
+
+    - name: Install custom binaries
+      command: "/tmp/{{ item.name }}"
+      loop: "{{ custom }}"
+
+    - name: Remove custom binary from temp
+      file:
+        path: "/tmp/{{ item.name }}"
+        state: absent
+      loop: "{{ custom }}"
+
+  when: custom is defined and custom | length > 0

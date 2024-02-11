@@ -1,0 +1,9 @@
+---
+
+- name: Generate SSH key for root account
+  user: name=root generate_ssh_key=yes
+  register: root_user
+
+- name: Add Google Cloud Repo key
+  shell: curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+  when: group_names | select('search', 'gcp') | list | length > 0 and google_cloud_repo

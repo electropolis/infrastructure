@@ -1,0 +1,25 @@
+---
+
+- name: Journal logs configuration
+  block:
+
+    - name: limit the total size of journald logs
+      lineinfile:
+        dest: /etc/systemd/journald.conf
+        regexp: '^#SystemMaxUse='
+        line: SystemMaxUse={{ systemd_journal_system_max_use }}
+
+    - name: Enable journal logs compression
+      lineinfile:
+        dest: /etc/systemd/journald.conf
+        regexp: '^#Compress='
+        line: Compress={{ systemd_journal_compress }}
+
+    - name: Set storage to persistent
+      lineinfile:
+        dest: /etc/systemd/journald.conf
+        regexp: '^#Storage='
+        line: Storage={{ systemd_journal_storage }}
+
+  tags:
+    - journal_logs

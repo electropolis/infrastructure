@@ -1,0 +1,49 @@
+---
+
+packages:
+  - sudo
+  - rsync
+  - vim
+  - curl
+  - zip
+  - bzip2
+  - apt-transport-https
+  - sysstat
+  - acct
+  - htop
+  - dstat
+  - iptraf
+  - ifstat
+  - iftop
+  - pydf
+  - python3-setuptools
+  - python3-dev
+  - python3-pip
+  - python3-venv
+  - build-essential
+  - dbus
+  - lvm2
+  - xfsprogs
+  - parted
+  - net-tools
+  - dnsutils
+  - host
+  - nmap
+  - lsof
+  - auditd
+  - git
+  - acl
+  - screen
+  - gpg
+
+packages_additional:
+
+google_cloud_repo: false
+
+# Journal
+systemd_journal_system_max_use: 1G
+systemd_journal_storage: 'persistent'
+systemd_journal_compress: 'yes'
+
+
+custom: []
