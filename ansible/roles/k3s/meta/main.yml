@@ -1,0 +1,9 @@
+---
+
+dependencies:
+  - role: core
+    when: item.helm is defined
+    loop: "{{ addons }}"
+    custom:
+      - name: get-helm-3
+        url: https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3

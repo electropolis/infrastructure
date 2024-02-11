@@ -1,0 +1,42 @@
+---
+
+- name: K3s Installation
+  include: k3s.yml
+
+- name: Addons
+  include: addons.yml
+  environment: "{{ k3s.kubeconfig }}"
+  when: addons is defined and addons | length > 0
+
+- name: Config File
+  block:
+
+    - name: Fetch config
+      fetch:
+        src: /etc/rancher/k3s/k3s.yaml
+        dest: ~/config_remote
+        flat: true
+
+    - name: Change
+      delegate_to: localhost
+      become: false
+      replace:
+        path: ~/config_remote
+        regexp: "{{ item.regex }}"
+        replace: "{{ item.replace }}"
+      loop: 
+        # - { regex: 'cluster: default', replace: 'cluster: k3s' }
+        # - { regex: 'name:.*', replace: 'name: k3s' }
+        - { regex: '127.0.0.1', replace: '{{ inventory_hostname }}' }
+
+    - name: Merge config
+      become: false
+      delegate_to: localhost
+      shell: KUBECONFIG=$HOME/.kube/config:$HOME/config_remote kubectl config view --flatten > ~/.kube/merged
+
+    - name: Copy new config
+      become: false
+      delegate_to: localhost
+      shell: mv ~/.kube/merged ~/.kube/config 
+
+  tags: k3s_config

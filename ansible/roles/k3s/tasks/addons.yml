@@ -1,0 +1,41 @@
+---
+
+- name: Display current config
+  debug:
+    msg: "{{ k3s }}"
+
+- name: Addons manifests
+  block:
+
+    - name: Download addons manifests
+      get_url:
+        url: "{{ item.url }}"
+        dest: "/var/lib/rancher/k3s/server/manifests/{{ item.url.split('/')[-1] }}"
+      loop: "{{ addons }}"
+      when: item.enabled is defined and item.enabled
+
+    - name: Push Templates for Addons
+      template:
+        src: "{{ item.name }}.j2"
+        dest: "/var/lib/rancher/k3s/server/manifests/{{ item.name }}-setup.yaml"
+      loop: "{{ addons }}"
+      when: item.enabled is defined and item.enabled
+
+- name: Helm Addons
+  block:
+
+    - name: Helm Repos
+      kubernetes.core.helm_repository:
+        name: "{{ item.name }}"
+        repo_url: "{{ item.url }}"
+      loop: "{{ addons }}"
+      when: item.helm is defined and item.helm
+
+    - name: Install Charts
+      kubernetes.core.helm:
+        name: "{{ item.component }}"
+        chart_ref: "{{ item.name }}/{{ item.component }}"
+        release_namespace: default
+        update_repo_cache: true
+      loop: "{{ addons }}"
+      when: item.helm is defined and item.helm

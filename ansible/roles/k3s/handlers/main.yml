@@ -1,0 +1,4 @@
+---
+
+- name: k3s start
+  service: name=k3s state=started

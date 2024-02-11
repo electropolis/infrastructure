@@ -1,0 +1,63 @@
+---
+
+- name: cgroup settings for raspberry
+  block:
+
+    - name: check settins for cgroup in cmdline
+      ignore_errors: true
+      shell:
+        cmd: grep cgroup cmdline.txt
+        chdir: /boot/
+      changed_when: false
+      register: cgroup
+
+    - name: cgroup settings for container spec
+      ansible.builtin.lineinfile:
+        path: /boot/cmdline.txt
+        regexp: '^(.*console.*)$'
+        line: '\1 cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory'
+        backrefs: true
+      when: cgroup.failed
+
+  when: "'rasp' in inventory_hostname"
+  tags: cgroup
+
+- name: check if K3s is already Installed
+  stat:
+    path: /usr/local/bin/k3s
+  register: k3s_file
+
+- name: Install K3s
+  shell: curl -sfL https://get.k3s.io | sh -s -
+  notify: k3s start
+  when: not k3s_file.stat.exists
+  environment:
+    INSTALL_K3S_EXEC: "{{ k3s_exec }}"
+
+- name: Add K3S_EXEC environment variable
+  command: "echo $INSTALL_K3S_EXEC"
+  environment:
+    INSTALL_K3S_EXEC: "{{ k3s_exec }}"
+
+- name: Setting Python for Kubernetes ansible modules
+  block:
+    # - name: Run tasks/other.yaml instead of 'main'
+    #   ansible.builtin.include_role:
+    #     name: core
+    #     tasks_from: apt
+    #   vars:
+    #     packages: ['python3-pip']
+
+    - name: install kubernetes pip package
+      ignore_errors: true
+      pip:
+        name: kubernetes
+        state: present
+      register: pip_kubernetes
+
+    - name: Install python3-kubernetes
+      apt:
+        name: python3-kubernetes
+      when: pip_kubernetes.failed
+
+  tags: kube_python

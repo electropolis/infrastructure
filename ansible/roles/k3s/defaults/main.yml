@@ -1,0 +1,44 @@
+---
+
+
+k3s_exec:
+  "{% if not k3s.extras.traefik and not k3s.extras.servicelb %}--disable traefik --disable servicelb
+   {%- elif not k3s.extras.traefik %}--disable traefik{% elif not k3s.extras.servicelb %}--disable servicelb
+   {%- endif %} --cluster-cidr={{ k3s.network.cluster }} --service-cidr={{ k3s.network.service }}
+   {% if k3s.extras.san %}--tls-san={{ inventory_hostname }}{%- endif %}"
+
+lb_addresses: &lb_addresses
+  - "10.0.10.128/25"
+
+k3s:
+  enabled: true
+  kubeconfig:
+    K8S_AUTH_KUBECONFIG: &config_path /etc/rancher/k3s/k3s.yaml
+    KUBECONFIG: *config_path
+  extras:
+    traefik: false
+    servicelb: false
+    metallb: &metallb false
+    san: false
+  network:
+    service: 10.0.20.0/24
+    cluster: 10.0.21.0/24
+    bgp: &bgp
+      my_asn: &my_asn "65000"
+      peer_asn: *my_asn
+      peer: 10.0.1.30
+    loadbalancer:
+      ipAddressPools: *lb_addresses
+
+addons:
+  - name: metallb
+    url: https://raw.githubusercontent.com/metallb/metallb/v0.13.9/config/manifests/metallb-native.yaml
+    enabled: *metallb
+    bgp:
+      enabled: false
+      <<: *bgp
+    lb_ip_address: "{{ k3s.network.loadbalancer.ipAddressPools }}"
+  - name: nginx
+    helm: true
+    url: "https://helm.nginx.com/stable"
+    component: ingress

@@ -1,0 +1,35 @@
+{% for item in addons if item.name == 'metallb' -%}
+{% if item.bgp.enabled -%}
+---
+apiVersion: metallb.io/v1beta1
+kind: BGPAdvertisement
+metadata:
+  name: advertisement
+  namespace: {{ item.name }}-system
+spec:
+  aggregationLength: 32
+  aggregationLengthV6: 128
+  ipAddressPools:
+    - first-pool
+---
+apiVersion: metallb.io/v1beta2
+kind: BGPPeer
+metadata:
+  name: peer
+  namespace: metallb-system
+spec:
+  myASN: {{ item.bgp.my_asn }}
+  peerASN: {{ item.bgp.peer_asn }}
+  peerAddress: {{ item.bgp.peer }}
+{% endif %}
+---
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: first-pool
+  namespace: metallb-system
+spec:
+  addresses: {{ item.lb_ip_address }}
+  autoAssign: true
+  avoidBuggyIPs: true
+{% endfor %}

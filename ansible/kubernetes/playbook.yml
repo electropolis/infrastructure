@@ -1,0 +1,8 @@
+---
+
+- hosts: all
+  become: true
+
+  roles:
+    - {role: core, tags: core}
+    - {role: k3s, when: k3s.enabled, tags: k3s}
